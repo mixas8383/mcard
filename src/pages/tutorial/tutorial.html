@@ -3,6 +3,9 @@
     <ion-buttons end *ngIf="showSkip">
       <button ion-button (click)="startApp()" color="primary">{{ 'TUTORIAL_SKIP_BUTTON' | translate}}</button>
     </ion-buttons>
+    <ion-buttons end *ngIf="showSkip">
+      <button ion-button (click)="navCtrl.setRoot('HomePage')" color="primary">{{ 'Home' | translate}}</button>
+    </ion-buttons>
   </ion-navbar>
 </ion-header>
 

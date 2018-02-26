@@ -1,6 +1,6 @@
 {
   "name": "mcard",
-  "app_id": "",
+  "app_id": "60ec20a0",
   "type": "ionic-angular",
   "integrations": {
     "cordova": {}
