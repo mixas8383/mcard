@@ -19,6 +19,8 @@ import { DatabaseProvider } from '../providers/database/database';
 import { SQLitePorter } from '@ionic-native/sqlite-porter';
 import { SQLite } from '@ionic-native/sqlite';
 import { SqlStorage } from '../providers/sql/sql';
+import { SmartAudioProvider } from '../providers/smart-audio/smart-audio';
+import { NativeAudio } from '@ionic-native/native-audio';
 
 // The translate loader needs to know where to load i18n files
 // in Ionic's static asset pipeline.
@@ -76,7 +78,9 @@ export function provideSettings(storage: Storage) {
     SQLitePorter,
     SQLite,
     DatabaseProvider,
-    SqlStorage
+    SqlStorage,
+    SmartAudioProvider,
+    NativeAudio
   ]
 })
 export class AppModule { }

@@ -14,25 +14,20 @@
 
 
 <ion-content padding>
-  <ion-item>
-    <ion-label stacked>What's your name?</ion-label>
-    <ion-input [(ngModel)]="developer.name" placeholder="Developer Name"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label stacked>What's your special skill?</ion-label>
-    <ion-input [(ngModel)]="developer.skill" placeholder="Special Skill"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label stacked>How long have you been working?</ion-label>
-    <ion-input [(ngModel)]="developer.yearsOfExperience" placeholder="Years of experience"></ion-input>
-  </ion-item>
-  <button ion-button full (click)="addDeveloper()">Add Developer Info</button>
-  <button ion-button full (click)="importData()">Import</button>
- 
-  <ion-list>
-    <ion-item *ngFor="let dev of developers">
-      <h2>{{ dev.name }}</h2>
-      <p>{{ dev.yearsOfExperience }} years of {{ dev.skill }} Experience!</p>
-    </ion-item>
-  </ion-list>
+  <ion-grid *ngIf='item'>
+    <ion-row>
+      <ion-col col-12>
+        <ion-title text-center	padding><h1>{{item.row[aversLang]}}</h1></ion-title>
+      </ion-col>
+    </ion-row>
+
+    <ion-row *ngFor="let variant of variants">
+      <ion-col col-12>
+        <button  *ngIf="variant.id != item.row.id" (click)="clickButton(variant);" [style.color]="!variant.write ? '#488aff' : '#FF0000'" [class.flashing]="variant.write" ion-button strong large block outline>{{variant[reverslang]}}</button>
+        <button *ngIf="variant.id == item.row.id" (click)="clickButton(variant);" [style.color]="!variant.write ? '#488aff' : '#04c33c'" [class.flashing]="variant.write" ion-button strong large block outline>{{variant[reverslang]}}</button>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+  <button ion-button full (click)="getWord()">Add Developer Info</button>
 </ion-content>

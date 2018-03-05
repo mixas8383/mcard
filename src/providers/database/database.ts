@@ -46,7 +46,16 @@ export class DatabaseProvider {
           });
       } else {
         this.localDatabase = sqlStorage;
-        this.databaseReady.next(true);
+
+
+
+        this.storage.get('database_filled').then(val => {
+          if (val) {
+            this.databaseReady.next(true);
+          } else {
+            this.fillLocalDatabase();
+          }
+        });
       }
 
 
@@ -59,6 +68,7 @@ export class DatabaseProvider {
       return this.database
     } else {
       return this.localDatabase;
+
     }
   }
 
@@ -75,6 +85,14 @@ export class DatabaseProvider {
           })
           .catch(e => console.error(e));
       });
+  }
+  fillLocalDatabase() {
+
+
+    return Promise.all([this.executeSql('CREATE TABLE IF NOT EXISTS words(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
+    this.importData()
+    ]).then(() => { this.storage.set('database_filled', true); });
+
   }
 
   addDeveloper(name, skill, years) {
@@ -136,10 +154,30 @@ export class DatabaseProvider {
         for (let indeks in text) {
           let ka = text[indeks].split('=');
 
-         // this.executeSql('INSERT INTO words (en,ru,date,score)values (?,?,?,?)',[ka[0],ka[1],date,0]).then(a=>console.log(a));
+          this.executeSql('INSERT INTO words (en,ru,date,score)values (?,?,?,?)', [ka[0], ka[1], date, 0]).then(a => console.log(a));
         }
 
       });
+  }
+
+  getWord() {
+    return this.executeSql('SELECT MAX(id) as mx FROM words', []).then((data1) => {
+      let maxRow = data1.rows[0].mx;
+      return this.executeSql('SELECT * FROM words ORDER BY date ASC LIMIT 1', []).then((data2) => {
+        data2.maxId = maxRow;
+        data2.row = data2.rows[0];
+        delete (data2.rows);
+        let randomIds = [];
+        for (let i = 0; i < 4; i++) {
+          randomIds.push(Math.floor(Math.random() * maxRow));
+        }
+        return this.executeSql('SELECT * FROM words WHERE id IN(' + randomIds.join(',') + ')', []).then((data3) => {
+          data2.variants = data3.rows;
+          return data2;
+        }).catch((err) => { console.log(err) });
+      }).catch((err) => { console.log(err) })
+    }).catch(err => console.log(err));
+
   }
 
 
