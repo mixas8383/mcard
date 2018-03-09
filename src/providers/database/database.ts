@@ -78,10 +78,11 @@ export class DatabaseProvider {
         return res;
       })
       .subscribe(sql => {
+
         this.sqlitePorter.importSqlToDb(this.database, sql)
           .then(data => {
-            this.databaseReady.next(true);
-            this.storage.set('database_filled', true);
+
+            this.importData();
           })
           .catch(e => console.error(e));
       });
@@ -128,7 +129,19 @@ export class DatabaseProvider {
   executeSql(sql, data) {
 
     if (this.platform._platforms[0] == 'cordova') {
-      return this.getDatabase().executeSql(sql, data)
+      return this.getDatabase().executeSql(sql, data).then((ress) => {
+        let ret = { rows: [] };
+        ret.rows = [];
+        if (ress.rows && ress.rows.length) {
+          for (let i = 0; i < ress.rows.length; i++) {
+            ret.rows.push(ress.rows.item(i));
+          }
+
+        }
+        return ret
+
+
+      }).catch(err => console.log(err));
     } else {
 
       return this.getDatabase().query(sql, data).then((res) => { return res.res })
@@ -145,23 +158,23 @@ export class DatabaseProvider {
       })
       .subscribe(sql => {
         let text = sql.replace(/\r/g, "\n").replace(/\n{2,}/g, "\n").replace(/\t/g, ' ').replace(/ {2,}/g, ' ').replace(/^ +/g, "").replace(/\n +/g, "\n").replace(/ +$/g, "").replace(/ +\n/g, "\n").replace(/^\n/, '').replace(/`(.)/g, '$1́').split("\n");
-        console.log(text)
 
-        let date = moment().format('YYYY-MM-DD HH:mm:ss');
+        let date = moment().subtract(Math.floor(Math.random() * 25), 'hours').format('YYYY-MM-DD HH:mm:ss');
 
 
-        console.log()
         for (let indeks in text) {
           let ka = text[indeks].split('=');
-
+          date = moment().subtract(Math.floor(Math.random() * 25), 'hours').format('YYYY-MM-DD HH:mm:ss');
           this.executeSql('INSERT INTO words (en,ru,date,score)values (?,?,?,?)', [ka[0], ka[1], date, 0]).then(a => console.log(a));
         }
-
+        this.databaseReady.next(true);
+        this.storage.set('database_filled', true);
       });
   }
 
   getWord() {
     return this.executeSql('SELECT MAX(id) as mx FROM words', []).then((data1) => {
+
       let maxRow = data1.rows[0].mx;
       return this.executeSql('SELECT * FROM words ORDER BY date ASC LIMIT 1', []).then((data2) => {
         data2.maxId = maxRow;
@@ -177,6 +190,14 @@ export class DatabaseProvider {
         }).catch((err) => { console.log(err) });
       }).catch((err) => { console.log(err) })
     }).catch(err => console.log(err));
+
+  }
+
+  updateWord(item, score) {
+
+    let date = moment().add(score, 'days').format('YYYY-MM-DD HH:mm:ss');
+    return this.executeSql('UPDATE  words SET date=? , score=? WHERE id =?', [date, score, item.id]).then((data) => {
+    }).catch((err) => { console.log(err) });
 
   }
 

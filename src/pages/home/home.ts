@@ -2,6 +2,7 @@ import { DatabaseProvider } from './../../providers/database/database';
 import { Component } from '@angular/core';
 import { IonicPage, Platform, NavController } from 'ionic-angular';
 import { SmartAudioProvider } from './../../providers/smart-audio/smart-audio';
+import { TextToSpeech } from '@ionic-native/text-to-speech';
 
 /**
  * Generated class for the HomePage page.
@@ -25,10 +26,11 @@ export class HomePage {
   variants = [];
   enable = true;
   canCheck = true;
+  wrongCount: number = 0;
 
-  constructor(public navCtrl: NavController, private databaseprovider: DatabaseProvider, private platform: Platform, private smartAudioProvider: SmartAudioProvider) {
-    this.smartAudioProvider.preload('wrong', '/assets/sounds/wrong1.mp3');
-    this.smartAudioProvider.preload('ok', '/assets/sounds/ok.mp3');
+  constructor(public navCtrl: NavController, private databaseprovider: DatabaseProvider, private platform: Platform, private smartAudioProvider: SmartAudioProvider,private tts: TextToSpeech) {
+    this.smartAudioProvider.preload('wrong', 'assets/sounds/wrong1.mp3');
+    this.smartAudioProvider.preload('ok', 'assets/sounds/ok.mp3');
 
     this.databaseprovider.getDatabaseState().subscribe(rdy => {
       if (rdy) {
@@ -65,43 +67,48 @@ export class HomePage {
       this.variants = [];
 
       for (let i = 0; i < data.variants.length; i++) {
-        console.log(data.variants[i])
         this.variants.push(data.variants[i]);
       }
 
       let posrel = Math.floor(Math.random() * this.variants.length);
-      console.log(this.variants)
       this.variants.splice(posrel, 0, data.row);
 
-      console.log(langrand);
-      console.log(data)
       this.item = data;
       this.canCheck = true;
+      this.wrongCount = 0;
 
     })
   }
   clickButton(item) {
-    if(!this.canCheck)
-    {
+    if (!this.canCheck) {
       return;
     }
     this.canCheck = false;
     item.write = !item.write;
-    console.log(item);
-    console.log(this.item);
     if (item.id == this.item.row.id) {
-      console.log('ok');
+
+      if (this.wrongCount > 0) {
+        this.databaseprovider.updateWord(item, 1)
+      } else {
+        this.databaseprovider.updateWord(item, item.score + 1)
+      }
       this.smartAudioProvider.play('ok');
-      setTimeout(()=>{ 
+       this.tts.speak('Hello World')
+      .then(() => console.log('Success'))
+      .catch((reason: any) => console.log(reason));
+    
+      setTimeout(() => {
         this.getWord();
-       
-    },1000);
-    } else { this.smartAudioProvider.play('wrong');
-  setTimeout(()=>{ 
-    item.write = !item.write;
-    this.canCheck = true;
-    },500);
-  }
+
+      }, 1000);
+    } else {
+      this.wrongCount++;
+      this.smartAudioProvider.play('wrong');
+      setTimeout(() => {
+        item.write = !item.write;
+        this.canCheck = true;
+      }, 500);
+    }
   }
 
 }
