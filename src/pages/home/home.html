@@ -7,24 +7,41 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>home</ion-title>
+    <button ion-button icon-only menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+
+    <ion-title>
+      {{pageTitle}}
+    </ion-title>
+
+    <ion-buttons end>
+        <ion-icon [name]="textPlay ? 'md-volume-up' : 'md-volume-off'"></ion-icon>
+        <ion-toggle [(ngModel)]="textPlay"></ion-toggle>
+    </ion-buttons>
   </ion-navbar>
 
 </ion-header>
 
 
 <ion-content padding>
-  <ion-grid *ngIf='item'>
+  <ion-grid *ngIf='item'> 
     <ion-row>
       <ion-col col-12>
-        <ion-title text-center	padding><h1>{{item.row[aversLang]}}</h1></ion-title>
+        <ion-title text-center	padding><h1>{{ item.row[aversLang]}}</h1></ion-title>
       </ion-col>
     </ion-row>
 
     <ion-row *ngFor="let variant of variants">
       <ion-col col-12>
-        <button  *ngIf="variant.id != item.row.id" (click)="clickButton(variant);" [style.color]="!variant.write ? '#488aff' : '#FF0000'" [class.flashing]="variant.write" ion-button strong large block outline>{{variant[reverslang]}}</button>
-        <button *ngIf="variant.id == item.row.id" (click)="clickButton(variant);" [style.color]="!variant.write ? '#488aff' : '#04c33c'" [class.flashing]="variant.write" ion-button strong large block outline>{{variant[reverslang]}}</button>
+        
+
+
+        <button (click)="clickButton(variant);" [style.color]="!variant.write ? '#488aff' : variant.color" [class.flashing]="variant.write" ion-button strong large block outline >{{variant[reverslang]}}</button>
+
+
+
+
       </ion-col>
     </ion-row>
 

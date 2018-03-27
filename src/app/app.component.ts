@@ -32,7 +32,9 @@ export class MyApp {
   @ViewChild(Nav) nav: Nav;
 
   pages: any[] = [
-    { title: 'Home', component: 'HomePage' },
+    { title: 'Bourne', component: 'HomePage', table: 'words' },
+    { title: '2000 words', component: 'HomePage', table: 'words2' }, 
+    { title: '5000 words', component: 'HomePage', table: 'words5' },
     // { title: 'Welcome', component: 'WelcomePage' },
     // { title: 'Tabs', component: 'TabsPage' },
     // { title: 'Cards', component: 'CardsPage' },
@@ -42,7 +44,7 @@ export class MyApp {
     // { title: 'Master Detail', component: 'ListMasterPage' },
     // { title: 'Menu', component: 'MenuPage' },
     { title: 'Settings', component: 'SettingsPage' },
-  //  { title: 'Search', component: 'SearchPage' }
+    //  { title: 'Search', component: 'SearchPage' }
   ]
 
   constructor(private translate: TranslateService, platform: Platform, settings: Settings, private config: Config, private statusBar: StatusBar, private splashScreen: SplashScreen) {
@@ -84,6 +86,11 @@ export class MyApp {
   openPage(page) {
     // Reset the content nav to have just this page
     // we wouldn't want the back button to show in this scenario
-    this.nav.setRoot(page.component);
+    if (page.table) {
+      this.nav.setRoot(page.component, { table: page.table });
+    } else {
+      this.nav.setRoot(page.component);
+    }
+
   }
 }

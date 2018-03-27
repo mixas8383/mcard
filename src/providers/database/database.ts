@@ -21,7 +21,8 @@ import * as moment from 'moment';
 export class DatabaseProvider {
 
   database: SQLiteObject;
-  localDatabase: SqlStorage
+  localDatabase: SqlStorage;
+  table = 'words';
   private databaseReady: BehaviorSubject<boolean>;
 
   constructor(public sqlitePorter: SQLitePorter, private storage: Storage, private sqlite: SQLite, private platform: Platform, private http: HttpClient, private sqlStorage: SqlStorage) {
@@ -71,6 +72,9 @@ export class DatabaseProvider {
 
     }
   }
+  setTable(table) {
+    this.table = table;
+  }
 
   fillDatabase() {
     this.http.get('assets/dump.sql', { 'responseType': 'text' })
@@ -82,7 +86,9 @@ export class DatabaseProvider {
         this.sqlitePorter.importSqlToDb(this.database, sql)
           .then(data => {
 
-            this.importData();
+            this.importData('assets/bourn.txt', 'words');
+            this.importData('rus_dict_eng_top.txt', 'words2');
+            this.importData('rus_dict_eng_top2.txt', 'words5');
           })
           .catch(e => console.error(e));
       });
@@ -90,11 +96,16 @@ export class DatabaseProvider {
   fillLocalDatabase() {
 
 
-    return Promise.all([this.executeSql('CREATE TABLE IF NOT EXISTS words(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
-    this.importData()
+    return Promise.all([
+      this.executeSql('CREATE TABLE IF NOT EXISTS words(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
+      this.executeSql('CREATE TABLE IF NOT EXISTS words2(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
+      this.executeSql('CREATE TABLE IF NOT EXISTS words5(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
+      this.importData('assets/bourn.txt', 'words'),
+      this.importData('assets/rus_dict_eng_top.txt', 'words2'),
+      this.importData('assets/rus_dict_eng_top2.txt', 'words5')
     ]).then(() => { this.storage.set('database_filled', true); });
 
-  }
+  } 
 
   addDeveloper(name, skill, years) {
     let data = [name, skill, years]
@@ -151,8 +162,9 @@ export class DatabaseProvider {
 
   }
 
-  importData() {
-    return this.http.get('assets/bourn.txt', { 'responseType': 'text' })
+  importData(fileName: string, table: string) {
+
+    return this.http.get(fileName, { 'responseType': 'text' })
       .map((res) => {
         return res;
       })
@@ -165,7 +177,7 @@ export class DatabaseProvider {
         for (let indeks in text) {
           let ka = text[indeks].split('=');
           date = moment().subtract(Math.floor(Math.random() * 25), 'hours').format('YYYY-MM-DD HH:mm:ss');
-          this.executeSql('INSERT INTO words (en,ru,date,score)values (?,?,?,?)', [ka[0], ka[1], date, 0]).then(a => console.log(a));
+          this.executeSql('INSERT INTO ' + table + ' (en,ru,date,score)values (?,?,?,?)', [ka[0], ka[1], date, 0]).then(a => console.log(a));
         }
         this.databaseReady.next(true);
         this.storage.set('database_filled', true);
@@ -173,10 +185,10 @@ export class DatabaseProvider {
   }
 
   getWord() {
-    return this.executeSql('SELECT MAX(id) as mx FROM words', []).then((data1) => {
+    return this.executeSql('SELECT MAX(id) as mx FROM ' + this.table, []).then((data1) => {
 
       let maxRow = data1.rows[0].mx;
-      return this.executeSql('SELECT * FROM words ORDER BY date ASC LIMIT 1', []).then((data2) => {
+      return this.executeSql('SELECT * FROM ' + this.table + ' ORDER BY date ASC LIMIT 1', []).then((data2) => {
         data2.maxId = maxRow;
         data2.row = data2.rows[0];
         delete (data2.rows);
@@ -184,7 +196,7 @@ export class DatabaseProvider {
         for (let i = 0; i < 4; i++) {
           randomIds.push(Math.floor(Math.random() * maxRow));
         }
-        return this.executeSql('SELECT * FROM words WHERE id IN(' + randomIds.join(',') + ')', []).then((data3) => {
+        return this.executeSql('SELECT * FROM ' + this.table + ' WHERE id IN(' + randomIds.join(',') + ')', []).then((data3) => {
           data2.variants = data3.rows;
           return data2;
         }).catch((err) => { console.log(err) });
@@ -196,7 +208,7 @@ export class DatabaseProvider {
   updateWord(item, score) {
 
     let date = moment().add(score, 'days').format('YYYY-MM-DD HH:mm:ss');
-    return this.executeSql('UPDATE  words SET date=? , score=? WHERE id =?', [date, score, item.id]).then((data) => {
+    return this.executeSql('UPDATE  ' + this.table + ' SET date=? , score=? WHERE id =?', [date, score, item.id]).then((data) => {
     }).catch((err) => { console.log(err) });
 
   }

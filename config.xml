@@ -89,4 +89,5 @@
     <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
     <plugin name="cordova-plugin-nativeaudio" spec="^3.0.9" />
     <plugin name="cordova-plugin-tts" spec="^0.2.3" />
+    <allow-navigation href="http://192.168.0.101:8100" />
 </widget>
