@@ -80,6 +80,11 @@ $navbar-md-height: 36px;
 @import "roboto";
 @import "noto-sans";
 
+.vertical-middle {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+  }
 .flashing{
 	background:red;
 	padding:5px 10px;

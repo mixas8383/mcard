@@ -19,7 +19,7 @@ import * as moment from 'moment';
 */
 @Injectable()
 export class DatabaseProvider {
-
+ 
   database: SQLiteObject;
   localDatabase: SqlStorage;
   table = 'words';
@@ -41,7 +41,7 @@ export class DatabaseProvider {
               if (val) {
                 this.databaseReady.next(true);
               } else {
-                this.fillDatabase();
+                this.reinitDatabase();
               }
             });
           });
@@ -77,18 +77,18 @@ export class DatabaseProvider {
   }
 
   fillDatabase() {
-    this.http.get('assets/dump.sql', { 'responseType': 'text' })
+    this.http.get('/assets/dump.sql', { 'responseType': 'text' })
       .map((res) => {
         return res;
-      })
+      }) 
       .subscribe(sql => {
-
+  
         this.sqlitePorter.importSqlToDb(this.database, sql)
           .then(data => {
 
-            this.importData('assets/bourn.txt', 'words');
-            this.importData('rus_dict_eng_top.txt', 'words2');
-            this.importData('rus_dict_eng_top2.txt', 'words5');
+            this.importData('/assets/bourn.txt', 'words');
+            this.importData('/assets/rus_dict_eng_top.txt', 'words2');
+            this.importData('/assets/rus_dict_eng_top2.txt', 'words5');
           })
           .catch(e => console.error(e));
       });
@@ -100,12 +100,21 @@ export class DatabaseProvider {
       this.executeSql('CREATE TABLE IF NOT EXISTS words(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
       this.executeSql('CREATE TABLE IF NOT EXISTS words2(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
       this.executeSql('CREATE TABLE IF NOT EXISTS words5(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),
-      this.importData('assets/bourn.txt', 'words'),
-      this.importData('assets/rus_dict_eng_top.txt', 'words2'),
-      this.importData('assets/rus_dict_eng_top2.txt', 'words5')
+      this.importData('/assets/bourn.txt', 'words'),
+      this.importData('/assets/rus_dict_eng_top.txt', 'words2'),
+      this.importData('/assets/rus_dict_eng_top2.txt', 'words5')
     ]).then(() => { this.storage.set('database_filled', true); });
+ 
+  }
+  reinitDatabase(){
 
-  } 
+     return Promise.all([
+      this.executeSql('DROP TABLE IF  EXISTS words;', []),
+      this.executeSql('DROP TABLE IF  EXISTS words2;', []),
+      this.executeSql('DROP TABLE IF  EXISTS words5;', []),
+    ]).then(() => { return this.fillDatabase() });
+ 
+  }
 
   addDeveloper(name, skill, years) {
     let data = [name, skill, years]
@@ -141,15 +150,16 @@ export class DatabaseProvider {
 
     if (this.platform._platforms[0] == 'cordova') {
       return this.getDatabase().executeSql(sql, data).then((ress) => {
-        let ret = { rows: [] };
-        ret.rows = [];
-        if (ress.rows && ress.rows.length) {
-          for (let i = 0; i < ress.rows.length; i++) {
-            ret.rows.push(ress.rows.item(i));
-          }
+        return ress;
+        // let ret = { rows: [] };
+        // ret.rows = [];
+        // if (ress.rows && ress.rows.length) {
+        //   for (let i = 0; i < ress.rows.length; i++) {
+        //     ret.rows.push(ress.rows.item(i));
+        //   }
 
-        }
-        return ret
+        // }
+        // return ret
 
 
       }).catch(err => console.log(err));
@@ -177,7 +187,7 @@ export class DatabaseProvider {
         for (let indeks in text) {
           let ka = text[indeks].split('=');
           date = moment().subtract(Math.floor(Math.random() * 25), 'hours').format('YYYY-MM-DD HH:mm:ss');
-          this.executeSql('INSERT INTO ' + table + ' (en,ru,date,score)values (?,?,?,?)', [ka[0], ka[1], date, 0]).then(a => console.log(a));
+          this.executeSql('INSERT INTO ' + table + ' (en,ru,date,score)values (?,?,?,?)', [ka[0], ka[1], date, 0]).then(a => {});
         }
         this.databaseReady.next(true);
         this.storage.set('database_filled', true);
@@ -186,18 +196,24 @@ export class DatabaseProvider {
 
   getWord() {
     return this.executeSql('SELECT MAX(id) as mx FROM ' + this.table, []).then((data1) => {
+     // console.log('-----');
 
-      let maxRow = data1.rows[0].mx;
+      let maxRow = data1.rows.item(0).mx;
+
+      //console.log(maxRow)
       return this.executeSql('SELECT * FROM ' + this.table + ' ORDER BY date ASC LIMIT 1', []).then((data2) => {
+       // console.log(data2)
         data2.maxId = maxRow;
-        data2.row = data2.rows[0];
+        data2.row = data2.rows.item(0);
+        data2.variants=[];
         delete (data2.rows);
         let randomIds = [];
         for (let i = 0; i < 4; i++) {
           randomIds.push(Math.floor(Math.random() * maxRow));
         }
         return this.executeSql('SELECT * FROM ' + this.table + ' WHERE id IN(' + randomIds.join(',') + ')', []).then((data3) => {
-          data2.variants = data3.rows;
+          //console.log(data3)
+          for (let t = 0; t < data3.rows.length; t++) { data2.variants.push(data3.rows.item(t)); }
           return data2;
         }).catch((err) => { console.log(err) });
       }).catch((err) => { console.log(err) })

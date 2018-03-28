@@ -32,6 +32,11 @@
       <button ion-item [navPush]="subSettings" [navParams]="profileSettings">
         {{ 'SETTINGS_PROFILE_BUTTON' | translate }}
       </button>
+      <ion-item>
+        <button ion-item (click)="reinitDatabase()">
+         reinit
+        </button>
+      </ion-item>
     </ion-list>
 
     <ion-list *ngIf="page == 'profile'">

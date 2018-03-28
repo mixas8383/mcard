@@ -31,12 +31,15 @@ export class HomePage {
   goodColor = '#04c33c';
   badColor = '#FF0000';
   pageTitle = '';
+  scoreTotal = -1;
+  scoreWrong = 0;
+  tmpWrite = 0;
+  tmpWrong = 0;
 
 
 
   constructor(public navParams: NavParams, public navCtrl: NavController, private databaseprovider: DatabaseProvider, private platform: Platform, private smartAudioProvider: SmartAudioProvider, private tts: TextToSpeech) {
-    this.smartAudioProvider.preload('wrong', 'assets/sounds/wrong1.mp3');
-    this.smartAudioProvider.preload('ok', 'assets/sounds/ok.mp3');
+    this.smartAudioProvider.dosome();
     let table = this.navParams.get('table');
     if (!table) {
       table = 'words';
@@ -81,6 +84,14 @@ export class HomePage {
     // console.log('ionViewDidLoad HomePage');
   }
   getWord() {
+    this.scoreTotal++;
+
+    if (this.tmpWrong > 0) {
+      this.scoreWrong++;
+      this.tmpWrong = 0;
+      this.tmpWrite = 0;
+    }
+
     this.databaseprovider.getWord().then(data => {
       let langrand = Math.floor(Math.random() * 2);
       if (langrand == 1) {
@@ -99,7 +110,7 @@ export class HomePage {
       // });
 
       for (let i = 0; i < data.variants.length; i++) {
-        let item = data.variants.item(i)
+        let item = data.variants[i]
         item[this.reverslang] = this.explode(item[this.reverslang]);
         this.variants.push(item);
       }
@@ -117,9 +128,11 @@ export class HomePage {
     })
   }
   clickButton(item) {
+
     if (!this.canCheck) {
       return;
     }
+   // this.scoreTotal++;
 
 
     this.canCheck = false;
@@ -129,6 +142,7 @@ export class HomePage {
 
 
     if (item.id == this.item.row.id) {
+      this.tmpWrite++;
       item.color = this.goodColor;
       if (this.wrongCount > 0) {
         this.databaseprovider.updateWord(item, 1)
@@ -145,10 +159,11 @@ export class HomePage {
 
       }, 1000);
     } else {
+      this.tmpWrong++;
       item.color = this.badColor;
       this.wrongCount++;
       this.smartAudioProvider.play('wrong');
-      setTimeout(() => {
+      setTimeout(() => { 
         item.write = !item.write;
         this.canCheck = true;
       }, 500);
