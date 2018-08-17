@@ -94,7 +94,7 @@ export class DatabaseProvider {
       });
   }
   fillLocalDatabase() {
-
+ 
 
     return Promise.all([
       this.executeSql('CREATE TABLE IF NOT EXISTS words(id INTEGER PRIMARY KEY AUTOINCREMENT,en TEXT,ru TEXT,date DATETIME,score INTEGER);', []),

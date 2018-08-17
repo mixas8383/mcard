@@ -15,6 +15,9 @@ export class SmartAudioProvider {
                 this.audioType = 'native';
                 this.preload('wrong', 'assets/sounds/wrong1.mp3');
                 this.preload('ok', 'assets/sounds/ok.mp3');
+            }else{
+                   this.preload('wrong', 'assets/sounds/wrong1.mp3');
+                this.preload('ok', 'assets/sounds/ok.mp3');
             }
 
         });

@@ -171,7 +171,8 @@ export class HomePage {
   }
 
   explode(title: string) {
-    if (title.indexOf(';') > 0) {
+    
+    if (title && title.indexOf(';') > 0) {
 
       let titles = title.split(';');
       let index = Math.floor(Math.random() * titles.length);
